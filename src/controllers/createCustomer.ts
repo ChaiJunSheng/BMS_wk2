@@ -1,4 +1,3 @@
-
 export async function createCustomerController(req: any, res: any) {
   try {
 
@@ -26,7 +25,7 @@ export async function createCustomerController(req: any, res: any) {
 
     // check if customer exists
 
-    const existingCustomer = await db.collection('customers').findOne({
+    const existingCustomer = await db.collection('collection_1').findOne({
       email: email.toLowerCase()
     });
 
@@ -34,7 +33,7 @@ export async function createCustomerController(req: any, res: any) {
       return res.status(400).json({ message: 'Customer already exists' });
     }
 
-    const result = await db.collection('customers').insertOne({
+    const result = await db.collection('collection_1').insertOne({
       name,
       email: email.toLowerCase(),
       phone,

@@ -8,11 +8,10 @@ async function start() {
   try {
 
     const app = express();
-    
 
-    //Link to instance 
+    //Connection to mongodb
     //database_1 is the database name
-    const mongo = await MongoClient.connect('mongodb://ec2-100-26-45-153.compute-1.amazonaws.com:27017/database_1');
+    const mongo = await MongoClient.connect('mongodb://13.55.17.179:27017/database_1');
 
     await mongo.connect();
     app.db = mongo.db();
@@ -23,8 +22,8 @@ async function start() {
     }));
 
     // Routes
-    app.use('/customers', require('./routes/customers'));
-    app.use('/second', require('./routes/second'));
+    app.use('/web', require('./routes/web'));
+
 
     // Start server
     app.listen(PORT, () => {

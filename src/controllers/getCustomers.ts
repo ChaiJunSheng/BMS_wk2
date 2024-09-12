@@ -6,7 +6,7 @@ export async function getCustomersController(req: any, res: any) {
     
     const { db } = req.app;
 
-    const result = await db.collection('customers').find().toArray();
+    const result = await db.collection('collection_1').find().toArray();
 
     res.status(200).json({
       message: "Customers retrieved",

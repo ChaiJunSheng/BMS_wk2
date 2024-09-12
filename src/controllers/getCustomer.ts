@@ -13,7 +13,7 @@ export async function getCustomerController(req: any, res: any) {
       return res.status(400).json({ message: 'Customer ID is required' });
     }
 
-    const result = await db.collection('customers').findOne({
+    const result = await db.collection('collection_1').findOne({
       _id: new ObjectId(id)
     });
 
