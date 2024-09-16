@@ -16,7 +16,9 @@ function apiKeyMiddleware(req, res, next) {
     if (apiKey && apiKey === API_KEY) {
       next();  // API key is valid
     } else {
-        console.log("Failed attempt")
+        const now = new Date();
+        console.log(`Failed attempt : ${now.toLocaleTimeString()}`);
+
       res.status(401).json({ message: 'Unauthorized' });  // API key is invalid
     }
   }
