@@ -3,10 +3,11 @@ import { ObjectId } from "mongodb";
 
 export async function getCustomerController(req: any, res: any) {
   try {
-    console.log("Get one customer");
+    const now = new Date();
+    console.log(`Get one customer : ${now.toLocaleTimeString()}`);
+
     
     const { db } = req.app;
-
     const { id } = req.params;
 
     if (!id) {

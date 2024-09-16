@@ -1,10 +1,9 @@
 export async function createCustomerController(req: any, res: any) {
   try {
+    const now = new Date();
+    console.log(`Create customer : ${now.toLocaleTimeString()}`);
 
-    console.log("Create customer");
-    
     const { db } = req.app;
-
     const { name, email, phone, address } = req.body;
 
     if (!name) {

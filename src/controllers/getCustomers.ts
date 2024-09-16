@@ -2,10 +2,10 @@
 
 export async function getCustomersController(req: any, res: any) {
   try {
-    console.log("Get all the customers");
+    const now = new Date();
+    console.log(`Get all the customers : ${now.toLocaleTimeString()}`);
     
     const { db } = req.app;
-
     const result = await db.collection('collection_1').find().toArray();
 
     res.status(200).json({

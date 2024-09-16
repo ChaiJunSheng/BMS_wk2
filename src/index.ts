@@ -11,7 +11,7 @@ async function start() {
 
     //Connection to mongodb
     //database_1 is the database name
-    const mongo = await MongoClient.connect('mongodb://13.55.17.179:27017/database_1');
+    const mongo = await MongoClient.connect('mongodb://User:securepassword@52.23.198.72:27017/database_1');
 
     await mongo.connect();
     app.db = mongo.db();
@@ -23,7 +23,6 @@ async function start() {
 
     // Routes
     app.use('/web', require('./routes/web'));
-
 
     // Start server
     app.listen(PORT, () => {
