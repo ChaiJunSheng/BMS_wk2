@@ -9,9 +9,16 @@ async function start() {
 
     const app = express();
 
+    require("dotenv").config();
+    const API_KEY = process.env.REST_API_KEY ;
+
     //Connection to mongodb
     //database_1 is the database name
-    const mongo = await MongoClient.connect('mongodb://User:securepassword@52.23.198.72:27017/database_1');
+    const username = process.env.DB_USERNAME ;
+    const password = process.env.DB_PASSWORD ;
+    const host_ip  = process.env.HOST_IP ;
+
+    const mongo = await MongoClient.connect(`mongodb://${username}:${password}@${host_ip}:27017/database_1`);
 
     await mongo.connect();
     app.db = mongo.db();

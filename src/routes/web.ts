@@ -6,7 +6,10 @@ const express  = require('express');
 
 const router = express.Router();
 const app = express();
-const API_KEY = '123';
+
+require("dotenv").config();
+
+const API_KEY = process.env.REST_API_KEY ;
 
 console.log('Use Web route');
 
