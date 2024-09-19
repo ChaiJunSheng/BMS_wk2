@@ -2,6 +2,7 @@ import { MongoClient } from 'mongodb';
 
 const express = require('express');
 const body = require('body-parser');
+const cors = require('cors');
 const PORT = 8080;
 
 async function start() {
@@ -23,9 +24,17 @@ async function start() {
     await mongo.connect();
     app.db = mongo.db();
 
+    app.use(cors(
+      {
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+      }
+    ));
+
     // body parser, limit the data sent through one request
     app.use(body.json({
-      limit: '500kb'
+      limit: '10mb'
     }));
 
     // Routes

@@ -1,6 +1,8 @@
 import { createCustomerController } from "../controllers/createCustomer";
 import { getCustomerController } from "../controllers/getCustomer";
 import { getCustomersController } from "../controllers/getCustomers";
+import { getFloorPlansController } from "../controllers/getFloorPlans";
+import { saveFloorPlanController } from "../controllers/saveFloorPlan";
 
 const express  = require('express');
 
@@ -23,6 +25,7 @@ function apiKeyMiddleware(req, res, next) {
         console.log(`Failed attempt : ${now.toLocaleTimeString()}`);
 
       res.status(401).json({ message: 'Unauthorized' });  // API key is invalid
+
     }
   }
 
@@ -30,5 +33,6 @@ router.use(apiKeyMiddleware);
 router.get('/', getCustomersController);
 router.post('/', createCustomerController);
 router.get('/:id', getCustomerController);
-
+router.post('/save-floor-plan', saveFloorPlanController);
+router.get('/get-floor-plan/:userId', getFloorPlansController)
 module.exports = router;
