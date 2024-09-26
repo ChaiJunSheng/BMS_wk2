@@ -1,38 +1,44 @@
 import { createCustomerController } from "../controllers/createCustomer";
+import { editZoneTempController } from "../controllers/editZoneTemp";
 import { getCustomerController } from "../controllers/getCustomer";
 import { getCustomersController } from "../controllers/getCustomers";
+import { getEnergyReadingsController } from "../controllers/getEnergyReadings";
 import { getFloorPlansController } from "../controllers/getFloorPlans";
+import { getLatestEnergyReadingController } from "../controllers/getLatestEnergyReadings";
 import { saveFloorPlanController } from "../controllers/saveFloorPlan";
 
-const express  = require('express');
-
+const express = require('express');
 const router = express.Router();
-const app = express();
 
 require("dotenv").config();
 
-const API_KEY = process.env.REST_API_KEY ;
+const API_KEY = process.env.REST_API_KEY;
 
 console.log('Use Web route');
 
 function apiKeyMiddleware(req, res, next) {
-    const apiKey = req.headers['x-api-key'];
-  
-    if (apiKey && apiKey === API_KEY) {
-      next();  // API key is valid
-    } else {
-        const now = new Date();
-        console.log(`Failed attempt : ${now.toLocaleTimeString()}`);
+  const apiKey = req.headers['x-api-key'];
 
-      res.status(401).json({ message: 'Unauthorized' });  // API key is invalid
+  if (apiKey && apiKey === API_KEY) {
+    next(); // API key is valid
+  } else {
+    const now = new Date();
+    console.log(`Failed attempt : ${now.toLocaleTimeString()}`);
 
-    }
+    res.status(401).json({ message: 'Unauthorized' }); // API key is invalid
   }
+}
 
 router.use(apiKeyMiddleware);
-router.get('/', getCustomersController);
-router.post('/', createCustomerController);
-router.get('/:id', getCustomerController);
+
+// Define all routes on 'router'
 router.post('/save-floor-plan', saveFloorPlanController);
-router.get('/get-floor-plan/:userId', getFloorPlansController)
+router.get('/get-energy-readings', getEnergyReadingsController);
+router.get('/get-latest-energy-reading', getLatestEnergyReadingController);
+router.get('/get-floor-plan/:userId', getFloorPlansController);
+router.put('/edit-zone-temp/:zoneId', (req, res) => {
+  console.log('Request received for zone:', req.params.zoneId);
+  editZoneTempController(req, res, req.io);
+});
+
 module.exports = router;
