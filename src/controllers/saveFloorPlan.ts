@@ -1,4 +1,7 @@
+import QRCode from "qrcode";
+
 export async function saveFloorPlanController(req: any, res: any) {
+    console.log('saveFloorPlanController called');
     try {
         console.log("Request body: ", req.body);
         const { db } = req.app;
@@ -17,9 +20,21 @@ export async function saveFloorPlanController(req: any, res: any) {
             zones: zones,
         });
 
-        console.log("Floor plan saved: ", result);
+        const floorPlanId = result.insertedId;
+
+        const feedbackUrl = `http://localhost:3001/feedback?floorPlanId=${floorPlanId}`;
+        const qrCodeDataUrl = await QRCode.toDataURL(feedbackUrl);
+
+        await db.collection('floorplans').updateOne(
+            { _id: floorPlanId },
+            { $set: { qrCodeUrl: qrCodeDataUrl }}
+        )
+
+        console.log("Floor plan saved and QR code generated: ", result);
         res.status(200).json({
             message: 'Floor plan saved',
+            floorPlanId,
+            qrCodeUrl: qrCodeDataUrl,
             result
         });
     }
