@@ -35,7 +35,7 @@ router.use(apiKeyMiddleware);
 
 // Define all routes on 'router'
 router.post('/save-floor-plan', saveFloorPlanController);
-router.post('/save-feedback', saveFeedbackController)
+router.post('/save-feedback', saveFeedbackController);
 router.get('/get-energy-readings', getEnergyReadingsController);
 router.get('/get-latest-energy-reading', getLatestEnergyReadingController);
 router.get('/get-floor-plan/:userId', getFloorPlansController);

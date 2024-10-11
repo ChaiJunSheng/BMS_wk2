@@ -20,7 +20,7 @@ export async function getLatestEnergyReadingController(req, res) {
                 latestEnergyReading.time = reading.time;
                 latestEnergyReading[`Sensor_${sensorNumber}_Energy`] = reading[`Sensor_${sensorNumber}_Energy`] || 0;
                 latestEnergyReading[`Sensor_${sensorNumber}_Current`] = reading[`Sensor_${sensorNumber}_Current`] || 0;
-                latestEnergyReading[`Sensor_${sensorNumber}_Voltage`] = reading[`Sensor_${sensorNumber}_Voltage`] || 0;
+                latestEnergyReading[`Sensor_${sensorNumber}_Power`] = reading[`Sensor_${sensorNumber}_Power`] || 0;
             }
         }
 

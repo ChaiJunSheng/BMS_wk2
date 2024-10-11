@@ -22,7 +22,7 @@ export async function saveFloorPlanController(req: any, res: any) {
 
         const floorPlanId = result.insertedId;
 
-        const feedbackUrl = `http://localhost:3001/feedback?floorPlanId=${floorPlanId}`;
+        const feedbackUrl = `http://3.25.195.46:3000/feedback?floorPlanId=${floorPlanId}`;
         const qrCodeDataUrl = await QRCode.toDataURL(feedbackUrl);
 
         await db.collection('floorplans').updateOne(

@@ -76,7 +76,7 @@ export async function getEnergyReadingsController(req, res) {
                     time: reading.time,  // Keep the original 'time' field
                     [`Sensor_${sensorNumber}_Energy`]: reading[`Sensor_${sensorNumber}_Energy`] || 0,
                     [`Sensor_${sensorNumber}_Current`]: reading[`Sensor_${sensorNumber}_Current`] || 0,
-                    [`Sensor_${sensorNumber}_Voltage`]: reading[`Sensor_${sensorNumber}_Voltage`] || 0
+                    [`Sensor_${sensorNumber}_Power`]: reading[`Sensor_${sensorNumber}_Power`] || 0
                 });
             });
         }
