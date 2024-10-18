@@ -12,6 +12,20 @@ export async function saveFloorPlanController(req: any, res: any) {
             return res.status(400).json({ message: 'User ID, Floor plan, imageUrl, and zones are required' });
         }
 
+        for (let zone of zones) {
+            if (!zone.id || !zone.name || !zone.shape || !Array.isArray(zone.points) || !Array.isArray(zone.aircons)) {
+                console.log("Invalid zone data received");
+                return res.status(400).json({ message: 'Each zone must have an id, name, shape, points array, and aircon array'});
+            }
+
+            for (let aircon of zone.aircons) {
+                if (!aircon.name || typeof aircon.setPointTemp != 'number' || typeof aircon.status !== 'boolean') {
+                    console.log("Invalid aircon data in zone");
+                    return res.status(400).json({ message: 'Each aircon must have a name, setPointTemp (number), and status (boolean).'})
+                }
+            }
+        }
+
         console.log("Saving floor plan to database...")
         const result = await db.collection('floorplans').insertOne({
             userId: userId,
