@@ -1,4 +1,5 @@
 import { createCustomerController } from "../controllers/createCustomer";
+import { editFloorPlanController } from "../controllers/editFloorPlan";
 import { editZoneTempController } from "../controllers/editZoneTemp";
 import { getCustomerController } from "../controllers/getCustomer";
 import { getCustomersController } from "../controllers/getCustomers";
@@ -44,5 +45,6 @@ router.put('/edit-zone-temp/:zoneId', (req, res) => {
   editZoneTempController(req, res, req.io);
 });
 router.get('/floorplan/:floorPlanId', getFloorPlanByIdController);
+router.put('/edit-floor-plan/:floorPlanId', editFloorPlanController);
 
 module.exports = router;
