@@ -1,9 +1,11 @@
+import { addEventController } from "../controllers/addEvent";
 import { createCustomerController } from "../controllers/createCustomer";
 import { editFloorPlanController } from "../controllers/editFloorPlan";
 import { editZoneTempController } from "../controllers/editZoneTemp";
 import { getCustomerController } from "../controllers/getCustomer";
 import { getCustomersController } from "../controllers/getCustomers";
 import { getEnergyReadingsController } from "../controllers/getEnergyReadings";
+import { getEventsController } from "../controllers/getEvents";
 import { getFloorPlanByIdController } from "../controllers/getFloorPlanById";
 import { getFloorPlansController } from "../controllers/getFloorPlans";
 import { getLatestEnergyReadingController } from "../controllers/getLatestEnergyReadings";
@@ -46,5 +48,7 @@ router.put('/edit-zone-temp/:zoneId', (req, res) => {
 });
 router.get('/floorplan/:floorPlanId', getFloorPlanByIdController);
 router.put('/edit-floor-plan/:floorPlanId', editFloorPlanController);
+router.post('/save-event', addEventController);
+router.get('/get-events/:userId', getEventsController);
 
 module.exports = router;
