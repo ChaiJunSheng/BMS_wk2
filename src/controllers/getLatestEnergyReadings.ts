@@ -1,26 +1,43 @@
 export async function getLatestEnergyReadingController(req, res) {
     try {
         const db = req.app.db;
-        const sensorCollections = ['sensor_1', 'sensor_2', 'sensor_3', 'sensor_4', 'sensor_5', 'sensor_6'];
 
         // Define latestEnergyReading with an index signature
-        const latestEnergyReading: { [key: string]: any } = {};
+        const latestReading = await db
+            .collection('lorawan')
+            .find({})
+            .sort({ _id: - 1 })
+            .limit(1)
+            .toArray();
 
-        for (let sensor of sensorCollections) {
-            const sensorNumber = sensor.split('_')[1];
-            const readings = await db
-                .collection(sensor)
-                .find({})
-                .sort({ _id: -1 })
-                .limit(1)
-                .toArray();
+        if (!latestReading || latestReading.length === 0) {
+            return res.status(404).json({
+                message: 'No energy readings found'
+            });
+        }
 
-            if (readings.length > 0) {
-                const reading = readings[0];
-                latestEnergyReading.time = reading.time;
-                latestEnergyReading[`Sensor_${sensorNumber}_Energy`] = reading[`Sensor_${sensorNumber}_Energy`] || 0;
-                latestEnergyReading[`Sensor_${sensorNumber}_Current`] = reading[`Sensor_${sensorNumber}_Current`] || 0;
-                latestEnergyReading[`Sensor_${sensorNumber}_Power`] = reading[`Sensor_${sensorNumber}_Power`] || 0;
+        const reading = latestReading[0];
+
+        // initialise the response object
+        const latestEnergyReading: { [key: string]: any } = {
+            time: reading.time,
+            data: reading.date
+        };
+
+        if (reading.Energy_Readings) {
+            for (let i = 1; i <= 6; i++) {
+                const sensorKey = `Sensor_${i}`;
+                const sensorData = reading.Energy_Readings[sensorKey];
+
+                if (sensorData) {
+                    latestEnergyReading[`${sensorKey}_Energy`] = sensorData.Energy || 0;
+                    latestEnergyReading[`${sensorKey}_Current`] = sensorData.Current || 0;
+                    latestEnergyReading[`${sensorKey}_Power`] = sensorData.Power || 0;
+                } else {
+                    latestEnergyReading[`${sensorKey}_Energy`] = 0;
+                    latestEnergyReading[`${sensorKey}_Current`] = 0;
+                    latestEnergyReading[`${sensorKey}_Power`] = 0;
+                }
             }
         }
 

@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 
-export async function saveFloorPlanController(req: any, res: any) {
+export async function saveFloorPlanController(req, res) {
     console.log('saveFloorPlanController called');
     try {
         console.log("Request body: ", req.body);
@@ -13,20 +13,20 @@ export async function saveFloorPlanController(req: any, res: any) {
         }
 
         for (let zone of zones) {
-            if (!zone.id || !zone.name || !zone.shape || !Array.isArray(zone.points) || !Array.isArray(zone.aircons)) {
+            if (!zone.id || !zone.name || !zone.shape || !Array.isArray(zone.points) || !Array.isArray(zone.sensors)) {
                 console.log("Invalid zone data received");
-                return res.status(400).json({ message: 'Each zone must have an id, name, shape, points array, and aircon array'});
+                return res.status(400).json({ message: 'Each zone must have an id, name, shape, points array, and sensors array' });
             }
 
-            for (let aircon of zone.aircons) {
-                if (!aircon.name || typeof aircon.setPointTemp != 'number' || typeof aircon.status !== 'boolean') {
-                    console.log("Invalid aircon data in zone");
-                    return res.status(400).json({ message: 'Each aircon must have a name, setPointTemp (number), and status (boolean).'})
+            for (let sensor of zone.sensors) {
+                if (!sensor.id || !sensor.type || typeof sensor.x !== 'number' || typeof sensor.y !== 'number' || !sensor.zoneId || !sensor.uid) {
+                    console.log("Invalid sensor data in zone");
+                    return res.status(400).json({ message: 'Each sensor must have an id, type, x, y, zoneId, and uid' });
                 }
             }
         }
 
-        console.log("Saving floor plan to database...")
+        console.log("Saving floor plan to database...");
         const result = await db.collection('floorplans').insertOne({
             userId: userId,
             floorPlan: floorPlan,
@@ -42,7 +42,7 @@ export async function saveFloorPlanController(req: any, res: any) {
         await db.collection('floorplans').updateOne(
             { _id: floorPlanId },
             { $set: { qrCodeUrl: qrCodeDataUrl }}
-        )
+        );
 
         console.log("Floor plan saved and QR code generated: ", result);
         res.status(200).json({

@@ -2,6 +2,7 @@ import { addEventController } from "../controllers/addEvent";
 import { createCustomerController } from "../controllers/createCustomer";
 import { editFloorPlanController } from "../controllers/editFloorPlan";
 import { editZoneTempController } from "../controllers/editZoneTemp";
+import { getAirconStatusController } from "../controllers/getAirconStatus";
 import { getCustomerController } from "../controllers/getCustomer";
 import { getCustomersController } from "../controllers/getCustomers";
 import { getEnergyReadingsController } from "../controllers/getEnergyReadings";
@@ -50,5 +51,6 @@ router.get('/floorplan/:floorPlanId', getFloorPlanByIdController);
 router.put('/edit-floor-plan/:floorPlanId', editFloorPlanController);
 router.post('/save-event', addEventController);
 router.get('/get-events/:userId', getEventsController);
+router.get('/get-aircon-status', getAirconStatusController);
 
 module.exports = router;
