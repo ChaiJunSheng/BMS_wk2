@@ -1,15 +1,17 @@
 import { addEventController } from "../controllers/addEvent";
-import { createCustomerController } from "../controllers/createCustomer";
 import { editFloorPlanController } from "../controllers/editFloorPlan";
 import { editZoneTempController } from "../controllers/editZoneTemp";
 import { getAirconStatusController } from "../controllers/getAirconStatus";
-import { getCustomerController } from "../controllers/getCustomer";
-import { getCustomersController } from "../controllers/getCustomers";
+import { getBuildingController } from "../controllers/getBuilding";
 import { getEnergyReadingsController } from "../controllers/getEnergyReadings";
 import { getEventsController } from "../controllers/getEvents";
 import { getFloorPlanByIdController } from "../controllers/getFloorPlanById";
+import { getFloorPlanReadingsController } from "../controllers/getFloorPlanReadings";
 import { getFloorPlansController } from "../controllers/getFloorPlans";
+import { getHistoricalEnergyReadingsController } from "../controllers/getHistoricalEnergyReadings";
 import { getLatestEnergyReadingController } from "../controllers/getLatestEnergyReadings";
+import { getSensorReadingsController } from "../controllers/getSensorReadings";
+import { saveBuildingController } from "../controllers/saveBuilding";
 import { saveFeedbackController } from "../controllers/saveFeedback";
 import { saveFloorPlanController } from "../controllers/saveFloorPlan";
 
@@ -41,16 +43,21 @@ router.use(apiKeyMiddleware);
 router.post('/save-floor-plan', saveFloorPlanController);
 router.post('/save-feedback', saveFeedbackController);
 router.get('/get-energy-readings', getEnergyReadingsController);
-router.get('/get-latest-energy-reading', getLatestEnergyReadingController);
-router.get('/get-floor-plan/:userId', getFloorPlansController);
+router.get('/get-latest-energy-reading/:buildingId/:floorPlanId', getLatestEnergyReadingController);
+router.get('/get-historical-energy-readings/:buildingId/:floorPlanId', getHistoricalEnergyReadingsController);
+router.get('/get-floor-plan/:buildingId', getFloorPlansController);
 router.put('/edit-zone-temp/:zoneId', (req, res) => {
   console.log('Request received for zone:', req.params.zoneId);
   editZoneTempController(req, res, req.io);
 });
 router.get('/floorplan/:floorPlanId', getFloorPlanByIdController);
+router.get('/get-floor-plan-readings/:buildingId/:floorPlanId', getFloorPlanReadingsController);
 router.put('/edit-floor-plan/:floorPlanId', editFloorPlanController);
 router.post('/save-event', addEventController);
 router.get('/get-events/:userId', getEventsController);
 router.get('/get-aircon-status', getAirconStatusController);
+router.post('/save-building', saveBuildingController);
+router.get('/get-building/:userId', getBuildingController);
+router.get('/get-sensor-readings/:buildingId/:floorPlanId', getSensorReadingsController);
 
 module.exports = router;

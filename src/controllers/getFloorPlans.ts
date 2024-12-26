@@ -1,13 +1,13 @@
 export async function getFloorPlansController(req, res) {
     try {
         const { db } = req.app;
-        const { userId } = req.params;
+        const { buildingId } = req.params;
 
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required' });
+        if (!buildingId) {
+            return res.status(400).json({ message: 'BuildingId is required' });
         }
 
-        const floorPlans = await db.collection('floorplans').find({ userId }).toArray();
+        const floorPlans = await db.collection('floorplans').find({ buildingId }).toArray();
 
         res.status(200).json({
             message: 'Floor plans fetched',

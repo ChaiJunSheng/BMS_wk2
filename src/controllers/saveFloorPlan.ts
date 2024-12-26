@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import QRCode from "qrcode";
 
 export async function saveFloorPlanController(req, res) {
@@ -5,9 +6,9 @@ export async function saveFloorPlanController(req, res) {
     try {
         console.log("Request body: ", req.body);
         const { db } = req.app;
-        const { userId, floorPlan, imageUrl, zones } = req.body;
+        const { buildingId, floorPlan, imageUrl, zones } = req.body;
 
-        if (!userId || !floorPlan || !imageUrl || !zones) {
+        if (!buildingId || !floorPlan || !imageUrl || !zones) {
             console.log("Invalid data received");
             return res.status(400).json({ message: 'User ID, Floor plan, imageUrl, and zones are required' });
         }
@@ -28,13 +29,18 @@ export async function saveFloorPlanController(req, res) {
 
         console.log("Saving floor plan to database...");
         const result = await db.collection('floorplans').insertOne({
-            userId: userId,
+            buildingId: buildingId,
             floorPlan: floorPlan,
             imageUrl: imageUrl,
             zones: zones,
         });
 
         const floorPlanId = result.insertedId;
+
+        await db.collection('buildings').updateOne(
+            { _id: new ObjectId(buildingId) },
+            { $push: { floors: floorPlanId }}
+        )
 
         const feedbackUrl = `http://3.25.195.46:3000/feedback?floorPlanId=${floorPlanId}`;
         const qrCodeDataUrl = await QRCode.toDataURL(feedbackUrl);

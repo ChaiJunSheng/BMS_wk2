@@ -22,17 +22,9 @@ async function start() {
     });
 
     require("dotenv").config();
-    const API_KEY = process.env.REST_API_KEY ;
 
-    //Connection to mongodb
-    //database_1 is the database name
-    const username = process.env.DB_USERNAME ;
-    const password = process.env.DB_PASSWORD ;
-    const host_ip  = process.env.HOST_IP ;
-
-    const mongo = await MongoClient.connect(`mongodb://${username}:${password}@${host_ip}:27017/database_1`);
-
-    app.db = mongo.db();
+    const mongo = await MongoClient.connect(`mongodb://User:securepassword@54.179.159.188:27017/?authSource=database_1`);
+    app.db = mongo.db('database_1');
 
     app.use(cors(
       {
