@@ -11,9 +11,11 @@ import { getFloorPlansController } from "../controllers/getFloorPlans";
 import { getHistoricalEnergyReadingsController } from "../controllers/getHistoricalEnergyReadings";
 import { getLatestEnergyReadingController } from "../controllers/getLatestEnergyReadings";
 import { getSensorReadingsController } from "../controllers/getSensorReadings";
+import { getSettingsController } from "../controllers/getSettings";
 import { saveBuildingController } from "../controllers/saveBuilding";
 import { saveFeedbackController } from "../controllers/saveFeedback";
 import { saveFloorPlanController } from "../controllers/saveFloorPlan";
+import { saveSettingsController } from "../controllers/saveSettings";
 
 const express = require('express');
 const router = express.Router();
@@ -46,6 +48,8 @@ router.get('/get-energy-readings', getEnergyReadingsController);
 router.get('/get-latest-energy-reading/:buildingId/:floorPlanId', getLatestEnergyReadingController);
 router.get('/get-historical-energy-readings/:buildingId/:floorPlanId', getHistoricalEnergyReadingsController);
 router.get('/get-floor-plan/:buildingId', getFloorPlansController);
+router.post('/save-settings/:buildingId/:floorPlanId', saveSettingsController);
+router.get("/get-settings/:buildingId/:floorPlanId", getSettingsController);
 router.put('/edit-zone-temp/:zoneId', (req, res) => {
   console.log('Request received for zone:', req.params.zoneId);
   editZoneTempController(req, res, req.io);
