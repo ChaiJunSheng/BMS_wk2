@@ -1,19 +1,24 @@
 export async function getEventsController(req: any, res: any) {
     console.log("getEventsController called");
     try {
-        console.log("Request body: ", req.body);
-        const { db } = req.app;
-        const { userId } = req.params;
+        // Extract userId from route parameters and buildingId from query parameters
+        const { buildingId } = req.params;
 
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required '});
+        // Validate required fields
+        if (!buildingId) {
+            return res.status(400).json({ message: 'Building ID is required' });
         }
 
-        const events = await db.collection('events').find({ userId }).toArray();
+        const { db } = req.app;
+
+        // Fetch events based on userId and buildingId
+        const events = await db.collection('events').find({ buildingId }).toArray();
 
         if (!events || events.length === 0) {
-            return res.status(404).json({ message: 'No events found for this user' });
+            return res.status(404).json({ message: 'No events found for this user in the specified building' });
         }
+
+        // Optional: Format dates or perform any additional processing if necessary
 
         res.status(200).json({ events });
     } catch (error) {

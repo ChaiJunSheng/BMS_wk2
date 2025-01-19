@@ -23,7 +23,7 @@ async function start() {
 
     require("dotenv").config();
 
-    const mongo = await MongoClient.connect(`mongodb://User:securepassword@54.179.159.188:27017/?authSource=database_1`);
+    const mongo = await MongoClient.connect(`mongodb://User:securepassword@13.213.6.26:27017/?authSource=database_1`);
     app.db = mongo.db('database_1');
 
     app.use(cors(

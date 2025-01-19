@@ -57,8 +57,8 @@ router.put('/edit-zone-temp/:zoneId', (req, res) => {
 router.get('/floorplan/:floorPlanId', getFloorPlanByIdController);
 router.get('/get-floor-plan-readings/:buildingId/:floorPlanId', getFloorPlanReadingsController);
 router.put('/edit-floor-plan/:floorPlanId', editFloorPlanController);
-router.post('/save-event', addEventController);
-router.get('/get-events/:userId', getEventsController);
+router.post('/save-event/:buildingId', addEventController);
+router.get('/get-events/:buildingId', getEventsController);
 router.get('/get-aircon-status', getAirconStatusController);
 router.post('/save-building', saveBuildingController);
 router.get('/get-building/:userId', getBuildingController);
