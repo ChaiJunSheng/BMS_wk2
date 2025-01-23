@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { dynamo_getLatest, dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
 
 /**
  * Example Express controller that retrieves:
@@ -33,6 +34,8 @@ export async function getFloorPlanReadingsController(req, res) {
       _id: floorPlanObjId,
     });
 
+    dynamo_searchByMultipleAttributes('floorplans', {buildingId,_id: floorPlanObjId,});
+
     if (!floorPlan) {
       return res.status(404).json({ message: "Floor plan not found" });
     }
@@ -42,6 +45,10 @@ export async function getFloorPlanReadingsController(req, res) {
       { buildingId, floorPlanId },
       { sort: { $natural: -1 } }
     );
+
+    dynamo_getLatest('readings')
+
+
     console.log("latestLoraWanReading:", latestLoraWanReadings);
 
     const lorawanReadings = latestLoraWanReadings?.Lorawan_Readings || {};
@@ -53,6 +60,8 @@ export async function getFloorPlanReadingsController(req, res) {
       { sort: { $natural: -1 } }
     );
     console.log("latestAirconReadings:", latestAirconStatus);
+
+    dynamo_getLatest('aircon_status')
 
     const airconReadings = latestAirconStatus?.FC_FullStatus_Readings || {};
     console.log("airconReadings keys:", Object.keys(airconReadings));

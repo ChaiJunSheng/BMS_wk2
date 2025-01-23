@@ -1,3 +1,5 @@
+import { dynamo_insertItem } from "../../functions/dynamo";
+
 export async function addEventController(req: any, res: any) {
   console.log("addEventController called");
   try {
@@ -51,6 +53,19 @@ export async function addEventController(req: any, res: any) {
     });
 
     const eventId = result.insertedId;
+
+    const dynamo_item = {
+      "_id": crypto.randomUUID(),
+      buildingId,
+      floorPlanId,
+      title,
+      date,
+      startTime,
+      endTime,
+      temp,
+      finished: false
+    };
+    dynamo_insertItem('events', dynamo_item);
 
     console.log("Event saved: ", result);
     res.status(200).json({

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
 
 /**
  * Example: accurate(ish) energy consumption by using consecutive readings.
@@ -52,6 +53,8 @@ export async function getSensorReadingsController(req: Request, res: Response) {
       floorPlanId,
       // If you have a dateTime field: dateTime: { $gte: startDate, $lte: now },
     }).toArray();
+
+    dynamo_searchByMultipleAttributes('readings' , {buildingId,floorPlanId})
 
     if (!allReadings || allReadings.length === 0) {
       return res.status(404).json({ message: "No sensor readings found." });

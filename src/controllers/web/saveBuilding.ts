@@ -1,3 +1,5 @@
+import { dynamo_insertItem } from "../../functions/dynamo";
+
 export async function saveBuildingController(req, res) {
     console.log('saveBuildingController called');
     try {
@@ -12,13 +14,13 @@ export async function saveBuildingController(req, res) {
             })
         }
 
-        if (!Array.isArray(location) || 
-            location.length !== 2 || 
-            typeof location[0] !== 'number' || 
+        if (!Array.isArray(location) ||
+            location.length !== 2 ||
+            typeof location[0] !== 'number' ||
             typeof location[1] !== 'number') {
             console.log("Invalid location format");
-            return res.status(400).json({ 
-                message: 'Location must be an array of two numbers [latitude, longitude]' 
+            return res.status(400).json({
+                message: 'Location must be an array of two numbers [latitude, longitude]'
             });
         }
 
@@ -32,6 +34,19 @@ export async function saveBuildingController(req, res) {
 
         console.log("Saving building to database...");
         const result = await db.collection('buildings').insertOne(buildingDoc);
+        
+        const buildingId = result.insertedId;
+
+        const dynamo_item = {
+            "_id": buildingId,
+            userId: String(userId),
+            buildingName,
+            location,
+            address,
+            floors: [], // Initialize empty floors array
+        };
+        dynamo_insertItem('buildings', dynamo_item);
+
 
         console.log("Building saved: ", result);
         res.status(200).json({

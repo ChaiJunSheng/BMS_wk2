@@ -1,3 +1,5 @@
+import { dynamo_getLatest } from "../../functions/dynamo";
+
 export async function getLatestEnergyReadingController(req, res) {
     try {
         const db = req.app.db;
@@ -9,6 +11,9 @@ export async function getLatestEnergyReadingController(req, res) {
             .sort({ _id: -1 })
             .limit(1)
             .toArray();
+
+        dynamo_getLatest('readings')
+        
 
         if (!latestReading || latestReading.length === 0) {
             return res.status(404).json({

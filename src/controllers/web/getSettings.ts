@@ -1,3 +1,5 @@
+import { dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
+
 export async function getSettingsController(req, res) {
     console.log("getSettingsController called");
     try {
@@ -14,6 +16,8 @@ export async function getSettingsController(req, res) {
             buildingId,
             floorPlanId
         });
+
+        dynamo_searchByMultipleAttributes('settings' , {buildingId,floorPlanId})
 
         if (!settingsDoc) {
             return res.status(404).json({ message: "Settings not found" });
