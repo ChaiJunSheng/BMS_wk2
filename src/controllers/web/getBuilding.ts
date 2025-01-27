@@ -1,3 +1,5 @@
+import { dynamo_getAllItems, dynamo_searchByAttribute, dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
+
 export async function getBuildingController(req, res) {
     console.log("getBuildingController called");
     try {
@@ -10,6 +12,8 @@ export async function getBuildingController(req, res) {
         }
 
         const buildings = await db.collection('buildings').find({ userId }).toArray();
+
+        dynamo_searchByMultipleAttributes('buildings', {userId});
 
         const userBuildings = buildings.map(building => ({
             id: building._id.toString(),

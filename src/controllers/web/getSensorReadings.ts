@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
 
 /**
  * Example: accurate(ish) energy consumption by using consecutive readings.
@@ -13,7 +14,9 @@ export async function getSensorReadingsController(req: Request, res: Response) {
     const { timeRange = "today", customStart, customEnd } = req.query;
 
     if (!buildingId || !floorPlanId) {
-      return res.status(400).json({ message: "BuildingId and FloorPlanId are required" });
+      return res
+        .status(400)
+        .json({ message: "BuildingId and FloorPlanId are required" });
     }
 
     // 1) Determine date range
@@ -26,48 +29,76 @@ export async function getSensorReadingsController(req: Request, res: Response) {
     } else {
       switch (timeRange) {
         case "today":
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); 
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          );
           break;
         case "week":
           // Last 7 days
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() - 7
+          );
           break;
         case "month":
-          // ~ Last 30 days
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+          // Last 30 days
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() - 30
+          );
           break;
         case "year":
           // Last 365 days
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 365);
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() - 365
+          );
           break;
         default:
           // fallback: 'today'
-          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          startDate = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          );
       }
     }
 
     // 2) Fetch all readings from DB
-    const allReadings = await db.collection("readings").find({
-      buildingId,
-      floorPlanId,
-      // If you have a dateTime field: dateTime: { $gte: startDate, $lte: now },
-    }).toArray();
+    const allReadings = await db
+      .collection("readings")
+      .find({
+        buildingId,
+        floorPlanId,
+        // If you have a dateTime field: { dateTime: { $gte: startDate, $lte: now } },
+      })
+      .toArray();
+
+    // (Optional) Your Dynamo function
+    dynamo_searchByMultipleAttributes("readings", { buildingId, floorPlanId });
 
     if (!allReadings || allReadings.length === 0) {
       return res.status(404).json({ message: "No sensor readings found." });
     }
 
-    // 3) Filter by date range (if we only have date/time fields, do local filter)
+    // 3) Filter by date range
     const filtered = allReadings.filter((r) => {
       const dateTime = new Date(`${r.date} ${r.time}`);
       return dateTime >= startDate && dateTime <= now;
     });
 
     if (filtered.length === 0) {
-      return res.status(404).json({ message: "No sensor readings found for the specified range." });
+      return res
+        .status(404)
+        .json({ message: "No sensor readings found for the specified range." });
     }
 
-    // 4) Process them using a more accurate method for energy
+    // 4) Process them
     const processedData = processSensorReadings(filtered, timeRange as string);
 
     return res.status(200).json({ data: processedData });
@@ -82,34 +113,41 @@ export async function getSensorReadingsController(req: Request, res: Response) {
  */
 function processSensorReadings(readings: any[], timeRange: string) {
   // 1) Group readings by day/hour/week as before
-  const aggregator: Record<string, {
-    timestamp: string;
-    energy: number;      // total kWh
-    cost: number;        // S$ cost
-    temperatureSum: number;
-    temperatureCount: number;
-    humiditySum: number;
-    humidityCount: number;
-    occupancy: number;   // Current occupancy value
-    rawReadings: any[];  // we'll store the actual readings to do pairwise calc
-  }> = {};
+  const aggregator: Record<
+    string,
+    {
+      timestamp: string;       // e.g. "Jan 25"
+      realDates: Date[];       // store actual Date objects for correct sorting
+      energy: number; 
+      cost: number; 
+      temperatureSum: number;
+      temperatureCount: number;
+      humiditySum: number;
+      humidityCount: number;
+      occupancy: number; 
+      rawReadings: any[]; 
+    }
+  > = {};
 
-  // Decide grouping key
+  // Decide grouping key for display
   const getGroupKey = (dt: Date) => {
     switch (timeRange) {
       case "today":
-        // group by hour
+        // group by hour => e.g. "08:00"
         return dt.getHours().toString().padStart(2, "0") + ":00";
+
       case "week":
-        // group by actual date, e.g., "Oct 25"
+        // group by date => e.g. "Jan 25"
         return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
       case "month":
-        // group by "Week 1", "Week 2", etc.
-        const weekOfMonth = Math.ceil(dt.getDate() / 7);
-        return `Week ${weekOfMonth}`;
+        // group by date => e.g. "Jan 25"
+        return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
       case "year":
-        // group by month, e.g. "Jan"
-        return dt.toLocaleDateString("en-US", { month: "short" });
+        // group by month-year => e.g. "Jan 2025"
+        return dt.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
       default:
         // fallback, group by hour
         return dt.getHours().toString().padStart(2, "0") + ":00";
@@ -124,22 +162,25 @@ function processSensorReadings(readings: any[], timeRange: string) {
     if (!aggregator[key]) {
       aggregator[key] = {
         timestamp: key,
+        realDates: [],
         energy: 0,
         cost: 0,
         temperatureSum: 0,
         temperatureCount: 0,
         humiditySum: 0,
         humidityCount: 0,
-        occupancy: 0,    // Initialize occupancy
+        occupancy: 0,
         rawReadings: [],
       };
     }
+
+    aggregator[key].realDates.push(dt);     // keep the real date
     aggregator[key].rawReadings.push(r);
   }
 
   // 2) Process each group
   Object.values(aggregator).forEach((group) => {
-    // Sort the group's rawReadings by dateTime
+    // Sort the group's rawReadings by their actual Date
     group.rawReadings.sort((a, b) => {
       const aDt = new Date(`${a.date} ${a.time}`);
       const bDt = new Date(`${b.date} ${b.time}`);
@@ -148,7 +189,7 @@ function processSensorReadings(readings: any[], timeRange: string) {
 
     let totalEnergyKWh = 0;
 
-    // Energy calculation
+    // Energy calculation: sum over consecutive readings
     for (let i = 0; i < group.rawReadings.length - 1; i++) {
       const curr = group.rawReadings[i];
       const next = group.rawReadings[i + 1];
@@ -157,10 +198,10 @@ function processSensorReadings(readings: any[], timeRange: string) {
       const nextDt = new Date(`${next.date} ${next.time}`);
 
       const hoursDiff = (nextDt.getTime() - currDt.getTime()) / (1000 * 60 * 60);
-      
+
       const currPower = extractPower(curr);
       const nextPower = extractPower(next);
-      
+
       const avgPower = (currPower + nextPower) / 2;
       const partialEnergy = avgPower * hoursDiff;
       totalEnergyKWh += partialEnergy;
@@ -174,7 +215,7 @@ function processSensorReadings(readings: any[], timeRange: string) {
 
     // Process temperature, humidity, and occupancy
     group.rawReadings.forEach((reading) => {
-      // Temperature processing
+      // Temperature
       const tVals = Object.values(reading.Lorawan_Readings || {})
         .map((dev: any) => dev.temperature)
         .filter((temp: any) => typeof temp === "number");
@@ -185,7 +226,7 @@ function processSensorReadings(readings: any[], timeRange: string) {
         group.temperatureCount += tVals.length;
       }
 
-      // Humidity processing
+      // Humidity
       const hVals = Object.values(reading.Lorawan_Readings || {})
         .map((dev: any) => dev.humidity)
         .filter((h: any) => typeof h === "number");
@@ -196,19 +237,30 @@ function processSensorReadings(readings: any[], timeRange: string) {
         group.humidityCount += hVals.length;
       }
 
-      // Occupancy processing
+      // Occupancy
       const occupancyValue = calculateOccupancy(reading.Lorawan_Readings || {});
-      group.occupancy = occupancyValue; // Store the latest occupancy value
+      group.occupancy = occupancyValue; // store the *latest* reading's occupancy
     });
   });
 
   // 3) Convert aggregator to array, calculate final averages
   const result = Object.values(aggregator).map((g) => {
-    const avgTemp = g.temperatureCount > 0 ? g.temperatureSum / g.temperatureCount : 0;
-    const avgHum = g.humidityCount > 0 ? g.humiditySum / g.humidityCount : 0;
+    // sort the real dates so we can pick the earliest date in the group
+    g.realDates.sort((a, b) => a.getTime() - b.getTime());
+    const earliestDate = g.realDates[0];
+
+    const avgTemp =
+      g.temperatureCount > 0 ? g.temperatureSum / g.temperatureCount : 0;
+    const avgHum =
+      g.humidityCount > 0 ? g.humiditySum / g.humidityCount : 0;
 
     return {
-      timestamp: g.timestamp,
+      // The label you want to display
+      timestamp: g.timestamp, 
+
+      // Keep the earliest real date in this group for correct sorting
+      sortDate: earliestDate,
+
       energy: g.energy,
       cost: g.cost,
       temperature: parseFloat(avgTemp.toFixed(1)),
@@ -217,15 +269,14 @@ function processSensorReadings(readings: any[], timeRange: string) {
     };
   });
 
-  // 4) Sort results
-  sortResults(result, timeRange);
+  // 4) Sort results by the actual Date object
+  sortResults(result);
 
   return result;
 }
 
 /**
- * Calculate occupancy from Lorawan readings by summing the absolute differences
- * between line_1_total_in and line_1_total_out for each sensor
+ * Calculate occupancy by summing the difference of line_1_total_in/out for each sensor
  */
 function calculateOccupancy(lorawanReadings: Record<string, any>): number {
   let totalIn = 0;
@@ -240,18 +291,15 @@ function calculateOccupancy(lorawanReadings: Record<string, any>): number {
     }
   });
 
-  // If you'd like to avoid negative values, you could return Math.max(0, totalIn - totalOut).
-  // If you want the absolute difference, do Math.abs(totalIn - totalOut)
-  var totalOccupancy = totalIn - totalOut;
+  let totalOccupancy = totalIn - totalOut;
   if (totalOccupancy < 0) {
     totalOccupancy = 0;
   }
-
-  return totalOccupancy
+  return totalOccupancy;
 }
 
 /** 
- * Utility to extract the power in kW from a single reading object.
+ * Extract total power (in kW) from a single reading object
  */
 function extractPower(reading: any): number {
   const sumPower: any = Object.values(reading.Energy_Readings || {}).reduce(
@@ -262,35 +310,8 @@ function extractPower(reading: any): number {
 }
 
 /** 
- * Sort results based on timeRange 
+ * Sort results purely by the real date we stored
  */
-function sortResults(results: any[], timeRange: string) {
-  if (timeRange === "today") {
-    // sort by hour
-    results.sort((a, b) => {
-      const aHour = parseInt(a.timestamp, 10);
-      const bHour = parseInt(b.timestamp, 10);
-      return aHour - bHour;
-    });
-  } else if (timeRange === "week") {
-    // e.g. "Oct 25", "Oct 26"
-    results.sort((a, b) => {
-      const dateA = new Date(`${a.timestamp} ${new Date().getFullYear()}`);
-      const dateB = new Date(`${b.timestamp} ${new Date().getFullYear()}`);
-      return dateA.getTime() - dateB.getTime();
-    });
-  } else if (timeRange === "month") {
-    // "Week 1", "Week 2", ...
-    results.sort((a, b) => {
-      const wA = parseInt(a.timestamp.replace("Week ", ""), 10);
-      const wB = parseInt(b.timestamp.replace("Week ", ""), 10);
-      return wA - wB;
-    });
-  } else if (timeRange === "year") {
-    // sort by month order
-    const monthsOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    results.sort((a, b) => {
-      return monthsOrder.indexOf(a.timestamp) - monthsOrder.indexOf(b.timestamp);
-    });
-  }
+function sortResults(results: any[]) {
+  results.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
 }

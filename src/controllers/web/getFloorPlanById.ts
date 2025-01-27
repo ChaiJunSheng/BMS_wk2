@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { dynamo_getItem_by_pk } from '../../functions/dynamo';
 
 export async function getFloorPlanByIdController(req, res) {
     try {
@@ -18,6 +19,8 @@ export async function getFloorPlanByIdController(req, res) {
       }
   
       const floorPlan = await db.collection('floorplans').findOne({ _id: objectId });
+      
+      dynamo_getItem_by_pk('floorplans', { id: objectId });
   
       if (!floorPlan) {
         console.log('No floor plan found with ID:', floorPlanId);

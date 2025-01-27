@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
 
 interface EnergyReading {
   date: string;   // e.g. "Fri Nov 15 2024"
@@ -75,6 +76,8 @@ export async function getHistoricalEnergyReadingsController(req: Request, res: R
       // If you stored dateTime as an actual Date in the DB, you could do:
       //   dateTime: { $gte: startDate, $lte: now },
     }).toArray();
+
+    dynamo_searchByMultipleAttributes('readings' , {buildingId,floorPlanId,})
 
     if (!allReadings || allReadings.length === 0) {
       return res.status(404).json({ message: "No energy readings found." });

@@ -1,3 +1,5 @@
+import { dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
+
 export async function getEventsController(req: any, res: any) {
     console.log("getEventsController called");
     try {
@@ -13,6 +15,8 @@ export async function getEventsController(req: any, res: any) {
 
         // Fetch events based on userId and buildingId
         const events = await db.collection('events').find({ buildingId }).toArray();
+
+        dynamo_searchByMultipleAttributes('events', {buildingId});
 
         if (!events || events.length === 0) {
             return res.status(404).json({ message: 'No events found for this user in the specified building' });

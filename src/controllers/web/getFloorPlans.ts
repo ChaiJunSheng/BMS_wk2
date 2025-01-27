@@ -1,3 +1,5 @@
+import { dynamo_getAllItems, dynamo_searchByMultipleAttributes } from "../../functions/dynamo";
+
 export async function getFloorPlansController(req, res) {
     try {
         const { db } = req.app;
@@ -9,6 +11,8 @@ export async function getFloorPlansController(req, res) {
 
         const floorPlans = await db.collection('floorplans').find({ buildingId }).toArray();
 
+        dynamo_searchByMultipleAttributes('floorplans', {buildingId});
+        
         res.status(200).json({
             message: 'Floor plans fetched',
             floorPlans: floorPlans.map(plan => ({
